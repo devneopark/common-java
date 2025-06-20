@@ -1,0 +1,30 @@
+version = '0.0.0'
+
+jar.enabled = true
+
+publishing {
+    publications {
+        create("gpr", MavenPublication) {
+            from components.java
+            groupId = findProperty('group').toString()
+            artifactId = 'domain'
+            version = findProperty('version').toString()
+        }
+    }
+
+    repositories {
+        maven {
+            name = "devneopark"
+            url = uri("https://maven.pkg.github.com/devneopark/common")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation 'jakarta.persistence:jakarta.persistence-api'
+    implementation 'org.springframework.data:spring-data-commons'
+}
