@@ -1,0 +1,51 @@
+name: main 푸시 워크플로우
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  diff-modules:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'devneopark' }}
+    outputs:
+      changes-json: ${{ steps.check.outputs.changes-json }}
+
+    steps:
+      - name: "0단계: 브랜치 체크아웃"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "1단계: 변경된 모듈 감지"
+        id: check
+        run: |
+          # 변경된 build.gradle 파일 목록 중에서 삭제되지 않은 것만 추출
+          CHANGED_MODULES=$(git diff --name-status HEAD^ HEAD \
+          | grep -E '^[^D].*\s.*/build\.gradle$' \
+          | awk '{print $2}' \
+          | awk -F/ '{print $1}' \
+          | sort -u)
+          
+          echo "변경된 모듈:"
+          echo "$CHANGED_MODULES"
+          
+          # json 생성
+          CHANGES_JSON="[]"
+          if [[ -n "${CHANGED_MODULES//[$'\n\r[:space:]']}" ]]; then
+            CHANGES_JSON="[$(echo "$CHANGED_MODULES" | sed 's/.*/"&"/' | paste -sd, -)]"
+          fi
+          
+          echo "changes-json=$CHANGES_JSON" >> $GITHUB_OUTPUT
+
+  release:
+    needs: diff-modules
+    if: ${{ needs.diff-modules.outputs.changes-json != '[]' }}
+    strategy:
+      matrix:
+        module-path: ${{ fromJSON(needs.diff-modules.outputs.changes-json) }}
+    uses: ./.github/workflows/release.yml
+    with:
+      module-path: ${{ matrix.module-path }}
+    secrets: inherit
