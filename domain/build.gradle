@@ -1,21 +1,19 @@
-version = '0.0.0'
-
 jar.enabled = true
 
 publishing {
     publications {
         create("gpr", MavenPublication) {
             from components.java
-            groupId = findProperty('group').toString()
+            groupId = 'com.github.devneopark.common-java'
             artifactId = 'domain'
-            version = findProperty('version').toString()
+            version = '0.0.1'
         }
     }
 
     repositories {
         maven {
             name = "devneopark"
-            url = uri("https://maven.pkg.github.com/devneopark/common")
+            url = uri("https://maven.pkg.github.com/devneopark/common-java")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
@@ -27,4 +25,9 @@ publishing {
 dependencies {
     implementation 'jakarta.persistence:jakarta.persistence-api'
     implementation 'org.springframework.data:spring-data-commons'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    testRuntimeOnly 'com.h2database:h2'
 }

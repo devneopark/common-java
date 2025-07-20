@@ -1,4 +1,3 @@
 rootProject.name = 'common-java'
 
 include 'domain'
-include 'util'
